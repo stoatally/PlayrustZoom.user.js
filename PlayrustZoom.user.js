@@ -2,39 +2,47 @@
 // @name        Playrust Zoom
 // @namespace   measlytwerp
 // @include     http://playrust.io/map/*
-// @version     0.2.0
+// @version     0.2.1
 // @run-at      document-start
 // @grant       GM_log
 // ==/UserScript==
 
-function appendStylesheet(selector, styles) {
+function appendStylesheet(groups) {
     var styleElement = document.createElement('style');
-    var stylesheet = selector + ' {';
+    var stylesheet = '';
 
-    for (var property in styles) {
-        stylesheet += ' ' + property + ': ' + styles[property] + ';';
+    for (var selector in groups) {
+        stylesheet += selector + ' {';
+
+        for (var property in groups[selector]) {
+            stylesheet += ' ' + property + ': ' + groups[selector][property] + ';';
+        }
+
+        stylesheet += ' } ';
     }
-
-    stylesheet += ' }';
 
     styleElement.textContent = stylesheet;
     document.head.appendChild(styleElement);
+
+    return styleElement;
 }
 
 var controlButtons,
     isMapZoomed = false,
+    mapZoomStylesheet = null,
+    mapZoomSize = 0,
     mapZoomScale = 3,
-    mapZoomIconSize = 8,
-    mapZoomButton,
+    mapZoomIconSize = 20,
+    mapZoomButton1x,
+    mapZoomButton2x,
+    mapZoomButton3x,
+    mapZoomButton4x,
     isFollowing = false,
     followingButton,
     followingTarget;
 
-var redButtonColor = 'ac3935',
-    redButtonImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAAAaCAYAAACeqEG/AAAAzUlEQVR4nO3OS0pCAQCF4bMT79Xr23ykVm5IIoRAcCA4cCA2aBA0aCA4CIIgoo20qOMqIjj8g2/+6fe4N4Bs+u8AgL+nn8WNAWTT92JuANn0dTczgGz6vJ0aQDZ9zK8NIJveZxMDyKbzdGwA2XSajAwgm97GQwPIptfRlQFk08twYADZ9DzoG0A2PfW6BpBNh27HALJp324bQDbtWi0DyKZts2kA2bSpKgPIpnWjMoBseqw3DCCbVmVpANn0UJQGkE33tcIAsmlZKwwg2wXyXUkimcrJvwAAAABJRU5ErkJggg==';
-
-var greenButtonColor = '78ac35',
-    greenButtonImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAp0lEQVRIib3NywYCAQAF0Psn0/uh9/MTRkkiiUhERmVUyhiTFrOIWcwiWrSIFhEx0o/0Ube/uIuzPoh+PhUgi47fNhXgfVpUgBs1qQDn3aACDq86FbB71qiAzaNKBdj3ChWwupWpAOtaogIWlyIVMA8LVMAsyFMB03OOCpj4WSpgfMpQASMvTQUMnRQVMNgnqYD+NkEF9Ow4FdBdx6iAztKgAkzLoMIfYRumpve0eSwAAAAASUVORK5CYII=';
+var buttonColor = 'ac3935',
+    buttonImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAAAaCAYAAACeqEG/AAAAzUlEQVR4nO3OS0pCAQCF4bMT79Xr23ykVm5IIoRAcCA4cCA2aBA0aCA4CIIgoo20qOMqIjj8g2/+6fe4N4Bs+u8AgL+nn8WNAWTT92JuANn0dTczgGz6vJ0aQDZ9zK8NIJveZxMDyKbzdGwA2XSajAwgm97GQwPIptfRlQFk08twYADZ9DzoG0A2PfW6BpBNh27HALJp324bQDbtWi0DyKZts2kA2bSpKgPIpnWjMoBseqw3DCCbVmVpANn0UJQGkE33tcIAsmlZKwwg2wXyXUkimcrJvwAAAABJRU5ErkJggg==';
 
 var waitForReady = function(callback) {
     var ticker = setInterval(function() {
@@ -62,23 +70,25 @@ var initDeleteWM = function() {
 };
 
 var initHeaderStyles = function() {
-    appendStylesheet('#header', {
-        'height':           '30px',
-    });
-    appendStylesheet('#container', {
-        'top':              '30px',
-    });
-    appendStylesheet('#header td', {
-        'background':       '#1a1819',
-        'font-size':        '10pt',
-        'line-height':      '15pt',
-    });
-    appendStylesheet('#header td.title', {
-        'padding-left':     '10px',
-    });
-    appendStylesheet('#signin, #signout', {
-        'font-size':        '1em',
-        'padding':          '0 5px',
+    appendStylesheet({
+        '#header': {
+            'height':           '30px',
+        },
+        '#container': {
+            'top':              '30px',
+        },
+        '#header td': {
+            'background':       '#1a1819',
+            'font-size':        '10pt',
+            'line-height':      '15pt',
+        },
+        '#header td.title': {
+            'padding-left':     '10px',
+        },
+        '#signin, #signout': {
+            'font-size':        '1em',
+            'padding':          '0 5px',
+        }
     });
 };
 
@@ -91,33 +101,25 @@ var initControlButtons = function() {
 };
 
 var initControlButtonStyles = function() {
-    appendStylesheet('#control-buttons', {
-        'font-size':        '10pt',
-        'line-height':      '15pt',
-        'position':         'fixed',
-        'right':            '10px',
-        'top':              '40px',
-    });
-    appendStylesheet('#control-buttons a', {
-        'background':       '#1a1819',
-        'border-radius':    '5px',
-        'color':            '#ffffff',
-        'cursor':           'pointer',
-        'display':          'inline-block',
-        'margin-left':      '10px',
-        'padding':          '0 5px',
-    });
-    appendStylesheet('body.is-map-zoomed #map-zoom-button', {
-        'background':       '#' + redButtonColor + ' url(' + redButtonImage + ')',
-    });
-    appendStylesheet('body.is-following #following-button', {
-        'background':       '#' + redButtonColor + ' url(' + redButtonImage + ')',
-    });
-    appendStylesheet('body.is-not-map-zoomed #map-zoom-button', {
-        'background':       '#' + greenButtonColor + ' url(' + greenButtonImage + ')',
-    });
-    appendStylesheet('body.is-not-following #following-button', {
-        'background':       '#' + greenButtonColor + ' url(' + greenButtonImage + ')',
+    appendStylesheet({
+        '#control-buttons': {
+            'font-size':        '10pt',
+            'line-height':      '15pt',
+            'position':         'fixed',
+            'right':            '10px',
+            'top':              '40px',
+        },
+        '#control-buttons a': {
+            'background':       '#' + buttonColor + ' url(' + buttonImage + ')',
+            'border-radius':    '5px',
+            'box-shadow':       '0 0 3px hsla(0, 0%, 0%, 0.5)',
+            'color':            '#ffffff',
+            'cursor':           'pointer',
+            'display':          'inline-block',
+            'filter':           'hue-rotate(220deg) saturate(25%)',
+            'margin-left':      '10px',
+            'padding':          '0 5px',
+        }
     });
 };
 
@@ -127,65 +129,35 @@ var initMapZoom = function() {
 };
 
 var initMapZoomStyles = function() {
-    var size = mapZoomScale * parseInt(document.querySelector('#map').style.width);
-
-    appendStylesheet('body.is-map-zoomed #map', {
-        'background-size':  size + 'px ' + size + 'px !important',
-        'height':           size + 'px !important',
-        'width':            size + 'px !important',
-    });
-    appendStylesheet('body.is-map-zoomed #grid', {
-        'transform':        'scale(' + mapZoomScale + ')',
-        'transform-origin': '0 0',
-    });
-    appendStylesheet('body.is-map-zoomed #buildings', {
-        'transform':        'scale(' + mapZoomScale + ')',
-        'transform-origin': '0 0',
-    });
-    appendStylesheet('body.is-map-zoomed #mortality', {
-        'transform':        'scale(' + mapZoomScale + ')',
-        'transform-origin': '0 0',
-    });
-    appendStylesheet('body.is-map-zoomed #deposits', {
-        'transform':        'scale(' + mapZoomScale + ')',
-        'transform-origin': '0 0',
-    });
-    appendStylesheet('body.is-map-zoomed #landmarks', {
-        'transform':        'scale(' + mapZoomScale + ')',
-        'transform-origin': '0 0',
-    });
-    appendStylesheet('body.is-map-zoomed #loot', {
-        'transform':        'scale(' + mapZoomScale + ')',
-        'transform-origin': '0 0',
-    });
-    appendStylesheet('body.is-map-zoomed #landmarks img', {
-        'width':            mapZoomIconSize + 'px !important',
-    });
-    appendStylesheet('body.is-map-zoomed #landmarks img', {
-        'width':            mapZoomIconSize + 'px !important',
-    });
+    mapZoomSize = parseInt(document.querySelector('#map').style.width);
 };
 
 var initMapZoomButton = function() {
-    mapZoomButton = document.createElement('a');
-    controlButtons.appendChild(mapZoomButton);
-
-    mapZoomButton
-        .setAttribute('id', 'map-zoom-button');
-    mapZoomButton
-        .addEventListener("click", toggleMapZoom);
+    controlButtons.appendChild(createMapZoomButton(1, disableMapZoom));
+    controlButtons.appendChild(createMapZoomButton(2, createMapZoomCallback(2)));
+    controlButtons.appendChild(createMapZoomButton(3, createMapZoomCallback(3)));
+    controlButtons.appendChild(createMapZoomButton(5, createMapZoomCallback(5)));
+    controlButtons.appendChild(createMapZoomButton(8, createMapZoomCallback(8)));
+    controlButtons.appendChild(createMapZoomButton(13, createMapZoomCallback(13)));
 
     disableMapZoom();
 };
 
-var toggleMapZoom = function() {
-    if (isMapZoomed) {
-        disableMapZoom();
-    }
+var createMapZoomButton = function(scale, callback)
+{
+    var button = document.createElement('a');
 
-    else {
+    button.addEventListener('click', callback);
+    button.textContent = scale + 'x';
+
+    return button;
+}
+
+var createMapZoomCallback = function(scale) {
+    return function() {
         enableMapZoom();
-    }
+        setMapZoom(scale);
+    };
 };
 
 var enableMapZoom = function() {
@@ -196,8 +168,7 @@ var enableMapZoom = function() {
     }
 
     document.body.classList.add('is-map-zoomed');
-
-    mapZoomButton.textContent = 'Zoom Out';
+    document.body.setAttribute('scale', mapZoomScale);
 
     if (!followingTarget) {
         selectPlayerAsFollowingTarget();
@@ -212,8 +183,56 @@ var disableMapZoom = function() {
     }
 
     document.body.classList.add('is-not-map-zoomed');
+    document.body.removeAttribute('scale');
+};
 
-    mapZoomButton.textContent = 'Zoom In';
+var setMapZoom = function(scale) {
+    var size = scale * mapZoomSize;
+    mapZoomScale = scale;
+
+    if (!!mapZoomStylesheet) {
+        document.head.removeChild(mapZoomStylesheet);
+    }
+
+    mapZoomStylesheet = appendStylesheet({
+        'body.is-map-zoomed #map': {
+            'background-size':  size + 'px ' + size + 'px !important',
+            'height':           size + 'px !important',
+            'width':            size + 'px !important',
+        },
+        'body.is-map-zoomed #grid': {
+            'transform':        'scale(' + mapZoomScale + ')',
+            'transform-origin': '0 0',
+        },
+        'body.is-map-zoomed #buildings': {
+            'transform':        'scale(' + mapZoomScale + ')',
+            'transform-origin': '0 0',
+        },
+        'body.is-map-zoomed #mortality': {
+            'transform':        'scale(' + mapZoomScale + ')',
+            'transform-origin': '0 0',
+        },
+        'body.is-map-zoomed #deposits': {
+            'transform':        'scale(' + mapZoomScale + ')',
+            'transform-origin': '0 0',
+        },
+        'body.is-map-zoomed #landmarks': {
+            'transform':        'scale(' + mapZoomScale + ')',
+            'transform-origin': '0 0',
+        },
+        'body.is-map-zoomed #loot': {
+            'transform':        'scale(' + mapZoomScale + ')',
+            'transform-origin': '0 0',
+        },
+        'body.is-map-zoomed #landmarks img': {
+            'margin':           (10 / mapZoomScale) + 'px !important',
+            'width':            (20 / mapZoomScale) + 'px !important',
+        },
+        'body.is-map-zoomed #landmarks img': {
+            'margin':           (10 / mapZoomScale) + 'px !important',
+            'width':            (20 / mapZoomScale) + 'px !important',
+        }
+    });
 };
 
 var initFollowing = function() {
@@ -254,7 +273,7 @@ var enableFollowing = function() {
 
     document.body.classList.add('is-following');
 
-    followingButton.textContent = 'Stop Following';
+    followingButton.textContent = 'Free';
 
     if (!followingTarget) {
         selectPlayerAsFollowingTarget();
@@ -270,7 +289,7 @@ var disableFollowing = function() {
 
     document.body.classList.add('is-not-following');
 
-    followingButton.textContent = 'Start Following';
+    followingButton.textContent = 'Follow';
 };
 
 var initFollowingTicker = function() {
