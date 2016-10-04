@@ -4,14 +4,14 @@
 ![Playrust Zoom in action](screenshot.png?raw=true)
 
 ## Release notes
-### v0.2.2
+### v0.2.2 - 4th Oct 2016
 
 - Cleaned up interface clutter and moved controls into the playrust.io header
 - Fixed icons being incorrectly offset when zoomed in (for real this time)
 
 [Install this version](../v0.2.2/PlayrustZoom.user.js?raw=true)
 
-### v0.2.1
+### v0.2.1  - 9th Sept 2016
 
 - Stylesheets are now written as a single object
 - Added zoom level selector (1x, 2x, 3x, 5x and 13x)
@@ -19,14 +19,14 @@
 
 [Install this version](../v0.2.1/PlayrustZoom.user.js?raw=true)
 
-### v0.2.0
+### v0.2.0 - 4th Sept 2016
 
 - A complete rewrite to be more maintainable and efficient
 - Stylesheets are now written from an object with properties
 
 [Install this version](../v0.2.0/PlayrustZoom.user.js?raw=true)
 
-### v0.1.2
+### v0.1.2 - 4th Sept 2016
 
 - Additional styling fixes
 - Added a button to toggle following the player on and off
@@ -34,14 +34,14 @@
 
 [Install this version](../v0.1.2/PlayrustZoom.user.js?raw=true)
 
-### v0.1.1
+### v0.1.1 - 4th Sept 2016
 
 - Improved page styling when zoomed in
 - Fixed a bug where the container was not loaded when excepted
 
 [Install this version](../v0.1.1/PlayrustZoom.user.js?raw=true)
 
-### v0.1.0
+### v0.1.0 - 4th Sept 2016
 
 Initial proof of concept.
 
