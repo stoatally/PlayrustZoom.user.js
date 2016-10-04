@@ -2,7 +2,7 @@
 // @name        Playrust Zoom
 // @namespace   measlytwerp
 // @include     http://playrust.io/map/*
-// @version     0.1.0
+// @version     0.1.1
 // @run-at      document-start
 // @grant       GM_log
 // ==/UserScript==
@@ -14,19 +14,26 @@ function appendStylesheet(stylesheet) {
 }
 
 // Reduce font size:
-appendStylesheet("body, td, th, input { font-size: 5pt; }");
+appendStylesheet("body, td, th, input { font-size: 4pt; }");
 
 // Reduce header size:
-appendStylesheet("#header { height: 20px; }");
-appendStylesheet("#container { top: 20px; }");
+appendStylesheet("#header { background: #1a1819; height: 10px; } #header td.title { padding-left: 10px; }");
+appendStylesheet('#signin, #signout { border-radius: 2px; padding: 2px; }');
+appendStylesheet("#container { top: 10px; }");
 
 // Recude icon size:
 appendStylesheet("#landmarks img { width: 10px !important; }");
 
 // Reduce friends list size:
-appendStylesheet("#friends { padding: 5px; width: 125px; }");
-appendStylesheet("#friends .icon { width: 10px; }");
-appendStylesheet('#allieslist a { background-size: 10px; padding-left: 19px; }')
+appendStylesheet("#friends { padding: 3px; width: 100px; }");
+appendStylesheet("#friends .icon { width: 8px; }");
+appendStylesheet("#friends-minmax { margin-top: -1px; margin-right: -1px;  }");
+appendStylesheet("#friends h2 { padding-bottom: 3px; }");
+appendStylesheet("#friends .list { clear: both; margin-bottom: 6px; }");
+appendStylesheet("#friends .list a.player { padding: 2px; }");
+appendStylesheet('#allieslist { max-height: 25vh; } #friends #allieslist a.player { background-size: 8px; padding-left: 13px; }')
+appendStylesheet('#recentlist { max-height: 25vh; }')
+appendStylesheet('#recent-filter { padding: 2px; }')
 
 // Hide the options:
 appendStylesheet("#options { display: none; }");
@@ -71,10 +78,11 @@ var toggleMapZoom = function() {
 
 // Wait for the player icon to be created:
 var waitForPlayer = setInterval(function() {
-  container = document.querySelector('#container');
   player = document.querySelector('#landmarks img[src="img/self.png"]');
 
   if (!!player) {
+    container = document.querySelector('#container');
+
     clearInterval(waitForPlayer);
 
     document.querySelector('#friends-toggle').style.display = "none";
