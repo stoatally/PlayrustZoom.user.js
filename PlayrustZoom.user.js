@@ -2,7 +2,7 @@
 // @name        Playrust Zoom
 // @namespace   measlytwerp
 // @include     http://playrust.io/map/*
-// @version     0.1.1
+// @version     0.1.2
 // @run-at      document-start
 // @grant       GM_log
 // ==/UserScript==
@@ -22,7 +22,7 @@ appendStylesheet('#signin, #signout { border-radius: 2px; padding: 2px; }');
 appendStylesheet("#container { top: 10px; }");
 
 // Recude icon size:
-appendStylesheet("#landmarks img { width: 10px !important; }");
+appendStylesheet("#landmarks img { width: 8px !important; }");
 
 // Reduce friends list size:
 appendStylesheet("#friends { padding: 3px; width: 100px; }");
@@ -38,19 +38,28 @@ appendStylesheet('#recent-filter { padding: 2px; }')
 // Hide the options:
 appendStylesheet("#options { display: none; }");
 
-appendStylesheet("#map-zoom-toggle { position: fixed; top: 25px; right: 5px; background: hsl(0, 0%, 15%); color: white; opacity: 0.8; padding: 5px; cursor: pointer; border-radius: 3px; }");
+appendStylesheet("#map-zoom-toggle { position: fixed; top: 15px; right: 10px; background: hsl(0, 0%, 15%); color: white; padding: 2px; cursor: pointer; border-radius: 2px; }");
 appendStylesheet("#map-zoom-toggle.on { background: hsl(0, 60%, 15%); }");
 
 var container,
     player,
     toggle,
-    isEnabled = true;
+    isEnabled = false;
 
 var followPlayer = function() {
   if (!isEnabled) return;
 
-  var playerX = parseFloat(/translateX\(([^\)]+)px\)/.exec(player.style.transform)[1]);
-  var playerY = parseFloat(/translateY\(([^\)]+)px\)/.exec(player.style.transform)[1]);
+  var playerX, playerY;
+
+  if (player.style.top && player.style.left) {
+    playerX = parseFloat(player.style.left);
+    playerY = parseFloat(player.style.top);
+  }
+
+  else {
+    playerX = parseFloat(/translateX\(([^\)]+)px\)/.exec(player.style.transform)[1]);
+    playerY = parseFloat(/translateY\(([^\)]+)px\)/.exec(player.style.transform)[1]);
+  }
 
   container.scrollLeft = (playerX - (container.clientWidth / 2) + player.clientWidth);
   container.scrollTop = (playerY - (container.clientHeight / 2) + player.clientHeight);
@@ -76,14 +85,19 @@ var toggleMapZoom = function() {
   }
 };
 
+var changeFocus = function(event) {
+  if ('IMG' == event.target.tagName || 'img' == event.target.tagName) {
+    player = event.target;
+    enableMapZoom();
+  }
+};
+
 // Wait for the player icon to be created:
-var waitForPlayer = setInterval(function() {
-  player = document.querySelector('#landmarks img[src="img/self.png"]');
+var waitForContainer = setInterval(function() {
+  container = document.querySelector('#container');
 
-  if (!!player) {
-    container = document.querySelector('#container');
-
-    clearInterval(waitForPlayer);
+  if (!!container) {
+    clearInterval(waitForContainer);
 
     document.querySelector('#friends-toggle').style.display = "none";
 
@@ -91,11 +105,24 @@ var waitForPlayer = setInterval(function() {
     toggle.setAttribute('id', 'map-zoom-toggle');
     document.body.appendChild(toggle);
 
-    enableMapZoom();
-
     toggle.addEventListener("click", toggleMapZoom);
     container.addEventListener("mousedown", disableMapZoom);
+    document.querySelector('#landmarks').addEventListener('click', changeFocus);
 
-    setInterval(followPlayer, 100);
+    if (!player) {
+      disableMapZoom();
+    }
   }
 }, 100);
+
+var waitForPlayer = setInterval(function() {
+  var checkPlayer = document.querySelector('#landmarks img[src="img/self.png"]');
+
+  if (!!checkPlayer) {
+    clearInterval(waitForPlayer);
+    player = checkPlayer;
+    enableMapZoom();
+  }
+}, 100);
+
+setInterval(followPlayer, 100);
