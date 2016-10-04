@@ -2,7 +2,7 @@
 // @name        Playrust Zoom
 // @namespace   measlytwerp
 // @include     http://playrust.io/map/*
-// @version     0.2.1
+// @version     0.2.2
 // @run-at      document-start
 // @grant       GM_log
 // ==/UserScript==
@@ -55,35 +55,38 @@ var waitForReady = function(callback) {
 
 var init = function() {
     initDeleteWM();
+    initDeletePlayrustBranding();
     initHeaderStyles();
     initControlButtons();
     initMapZoom();
     initFollowing();
-
-    console.log('--- ready');
 };
 
 var initDeleteWM = function() {
-    var wm = document.querySelector('#wm');
+    document.querySelector('#wm').remove();
+};
 
-    wm.parentNode.removeChild(wm);
+var initDeletePlayrustBranding = function() {
+    document.querySelector('#header td.title a + span').remove();
+    document.querySelector('#header td.title a').remove();
 };
 
 var initHeaderStyles = function() {
     appendStylesheet({
         '#header': {
-            'height':           '30px',
+            'height':           '40px',
         },
         '#container': {
-            'top':              '30px',
+            'top':              '40px',
         },
         '#header td': {
             'background':       '#1a1819',
             'font-size':        '10pt',
             'line-height':      '15pt',
+            'padding':          '0 10px 0 0',
         },
         '#header td.title': {
-            'padding-left':     '10px',
+            'padding':          '0 10px',
         },
         '#signin, #signout': {
             'font-size':        '1em',
@@ -93,22 +96,17 @@ var initHeaderStyles = function() {
 };
 
 var initControlButtons = function() {
-    controlButtons = document.createElement('nav');
+    var before = document.querySelector('#header tr td.info').nextSibling;
+
+    controlButtons = document.createElement('td');
     controlButtons.setAttribute('id', 'control-buttons');
-    document.body.appendChild(controlButtons);
+    before.parentNode.insertBefore(controlButtons, before);
 
     initControlButtonStyles();
 };
 
 var initControlButtonStyles = function() {
     appendStylesheet({
-        '#control-buttons': {
-            'font-size':        '10pt',
-            'line-height':      '15pt',
-            'position':         'fixed',
-            'right':            '10px',
-            'top':              '40px',
-        },
         '#control-buttons a': {
             'background':       '#' + buttonColor + ' url(' + buttonImage + ')',
             'border-radius':    '5px',
@@ -225,11 +223,11 @@ var setMapZoom = function(scale) {
             'transform-origin': '0 0',
         },
         'body.is-map-zoomed #landmarks img': {
-            'margin':           (10 / mapZoomScale) + 'px !important',
+            'margin':           ((20 - (20 / mapZoomScale)) / 2) + 'px !important',
             'width':            (20 / mapZoomScale) + 'px !important',
         },
         'body.is-map-zoomed #landmarks img': {
-            'margin':           (10 / mapZoomScale) + 'px !important',
+            'margin':           ((20 - (20 / mapZoomScale)) / 2) + 'px !important',
             'width':            (20 / mapZoomScale) + 'px !important',
         }
     });
